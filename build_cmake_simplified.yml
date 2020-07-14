@@ -13,18 +13,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        build_type: ["Release"]
+        build_type: [Release]
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Configure CMake
       run: |
-        cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake --source . --build build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build
       run: |
-        cmake --build build
+        cmake --build build --config ${{ matrix.build_type }}
 
     - name: Run tests
       shell: cmake -P {0}
