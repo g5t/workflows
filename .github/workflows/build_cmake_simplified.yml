@@ -1,0 +1,49 @@
+# adapted from https://cristianadam.eu/20191222/using-github-actions-with-c-plus-plus-and-cmake/
+name: CMake Build and Test Matrix
+
+on:
+    push:
+    pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build_type: [Release]
+        include:
+          - os: windows-latest
+            env_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Copy environment variables
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        ${{ matrix.env_script }}
+
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: |
+        cmake --build build
+
+    - name: Run tests
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
+        execute_process(
+          COMMAND ctest -j ${N} -C ${{ matrix.build_type }} --output-on-failure
+          WORKING_DIRECTORY build
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Running tests failed!")
+        endif()
