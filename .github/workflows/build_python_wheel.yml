@@ -41,7 +41,7 @@ jobs:
 
     - name: Build Python wheel
       run: |
-        python -m pip wheel . -w wheelhouse
+        echo python -m pip wheel . -w wheelhouse
       shell: bash
 
     - name: Publish wheel to PyPI
