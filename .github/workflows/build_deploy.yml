@@ -52,7 +52,7 @@ jobs:
     - name: Attach wheel to action
       uses: actions/upload-artifact@v2
       with:
-        name: brille - ${{ matrix.os }} - python ${{ matrix.python-version }}
+        name: ${{ matrix.os }} - python ${{ matrix.python-version }}
         path: dist/*.whl
 
   build-manylinux:
@@ -86,7 +86,7 @@ jobs:
     - name: Attach wheel to action
       uses: actions/upload-artifact@v2
       with:
-        name: brille - ${{ matrix.os }} - python ${{ matrix.python-version }}
+        name: ${{ matrix.os }} - python ${{ matrix.python-version }}
         path: dist/*manylinux*.whl
 
 
@@ -113,7 +113,7 @@ jobs:
     - name: Attach tarball to action
       uses: actions/upload-artifact@v2
       with:
-        name: brille - source
+        name: source
         path: dist/*.tar.gz
 
 
