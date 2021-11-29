@@ -6,7 +6,7 @@ on:
       - '*'
 
 jobs:
-  build-windows-macos:
+  windows-macos:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -55,7 +55,7 @@ jobs:
         name: ${{ matrix.os }} - python ${{ matrix.python-version }}
         path: dist/*.whl
 
-  build-manylinux:
+  manylinux:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -90,7 +90,7 @@ jobs:
         path: dist/*manylinux*.whl
 
 
-  build-source:
+  source:
     runs-on: ubuntu-latest
 
     steps:
@@ -131,11 +131,8 @@ jobs:
 
     - name: Move artifacts into a single folder
       run : |
-        mkdir dist;
-        find ${{ steps.download.outputs.download-path }}
-        -type f
-        -regex ".*\.\(tar\.gz\|whl\)"
-        -exec mv {} dist/. \;
+        mkdir dist
+        find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
 
     - name: Verify that everything is in one place
       run: ls -R dist

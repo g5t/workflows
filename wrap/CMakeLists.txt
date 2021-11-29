@@ -6,7 +6,7 @@ set(PROJECT_PYTHON_MODULE_SOURCES
 target_sources(${PROJECT_PYTHON_MODULE} PRIVATE ${PROJECT_PYTHON_MODULE_SOURCES})
 
 
-if(PROJECT_BUILD_TESTING)
+if(PROJECT_BUILD_PYTHON_TESTING)
   #ensure that the python interpreter knows how to import numpy
   execute_process(
     COMMAND ${Python3_EXECUTABLE} -c "import numpy"

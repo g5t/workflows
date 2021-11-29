@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 # Make the availability of testing optional
-option(PROJECT_BUILD_TESTING "Build tests for module" OFF)
+option(PROJECT_BUILD_TESTING "Build C++ tests for module" OFF)
+option(PROJECT_BUILD_PYTHON_TESTING "Build python tests for module" ON)
 # Allow system pybind11 to be required
 option(REQUIRE_SYSTEM_PYBIND11 "Never attempt to fetch pybind11" OFF)
 mark_as_advanced(REQUIRE_SYSTEM_PYBIND11)
@@ -71,7 +72,7 @@ find_package(Python3 COMPONENTS Interpreter Development)
 include(fetcher.cmake)
 
 # Attempt to find catch2 to handle C++ testing
-if(PROJECT_BUILD_TESTING)
+if(PROJECT_BUILD_CXX_TESTING)
   git_fetch(catch2 ${MINIMUM_CATCH2_VERSION} ${FETCH_CATCH2_REPO} ${REQUIRE_SYSTEM_CATCH2})
   list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/contrib")
 else()
@@ -102,7 +103,7 @@ add_custom_target(write_version_info
 # We will always build the python module
 list(APPEND CXX_TARGETS ${PROJECT_PYTHON_MODULE})
 
-if(PROJECT_BUILD_TESTING)
+if(PROJECT_BUILD_PYTHON_TESTING OR PROJECT_BUILD_CXX_TESTING)
   enable_testing() # allows registration of Python tests in wrap/
 endif()
 
@@ -110,7 +111,7 @@ endif()
 pybind11_add_module(${PROJECT_PYTHON_MODULE} MODULE)
 add_subdirectory(wrap)
 
-if(PROJECT_BUILD_TESTING)
+if(PROJECT_BUILD_CXX_TESTING)
   list(APPEND CXX_TARGETS ${TESTING_TARGET}) # Include the C++ test target
   # target for Catch2 based tests
   add_executable(${TESTING_TARGET})
@@ -120,9 +121,12 @@ endif()
 # add the dependencies and include directories for all CXX targets:
 add_subdirectory(src)  # important
 
-if(PROJECT_BUILD_TESTING)
+if (PROJECT_BUILD_CXX_TESTING OR PROJECT_BUILD_PYTHON_TESTING)
+	include(CTest)
+endif()
+
+if(PROJECT_BUILD_CXX_TESTING)
   target_link_libraries(${TESTING_TARGET} PUBLIC Catch2::Catch2)
-  include(CTest)
   include(Catch)
   catch_discover_tests(${TESTING_TARGET})
 endif()
