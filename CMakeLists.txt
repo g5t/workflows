@@ -131,17 +131,6 @@ if(PROJECT_BUILD_CXX_TESTING)
   catch_discover_tests(${TESTING_TARGET})
 endif()
 
-# OpenMP support:
-find_package(OpenMP REQUIRED) # Change code to support missing OpenMP?
-if(OpenMP_CXX_FOUND)
-  foreach(OMP_TARGET IN LISTS CXX_TARGETS)
-    target_link_libraries(${OMP_TARGET} PUBLIC OpenMP::OpenMP_CXX)
-  endforeach(OMP_TARGET)
-  if (MSVC AND MSVC_VERSION GREATER 1919)
-    add_compile_options(/openmp:experimental) # this doesn't work
-  endif()
-endif()
-
 # first we can indicate the documentation build as an option (default OFF)
 option(BUILD_DOC "Build documentation" OFF)
 option(USE_DOXYGEN "Look for and use Doxygen to build documentation" OFF)

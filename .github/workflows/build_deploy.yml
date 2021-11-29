@@ -1,13 +1,46 @@
 name: Build and Publish source and wheels to tag
 
 on:
-  push:
-    tags:
-      - '*'
+    push:
+    pull_request:
 
 jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-10.15, ubuntu-20.04, windows-2019]
+        build_type: [Release]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
+        execute_process(
+          COMMAND ctest -j ${N} -C ${{ matrix.build_type }} --output-on-failure
+          WORKING_DIRECTORY build
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Running tests failed!")
+        endif()
+
   windows-macos:
     runs-on: ${{ matrix.os }}
+    needs: [test]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     strategy:
       fail-fast: false
@@ -57,6 +90,8 @@ jobs:
 
   manylinux:
     runs-on: ${{ matrix.os }}
+    needs: [test]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     strategy:
       fail-fast: false
@@ -92,6 +127,8 @@ jobs:
 
   source:
     runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     steps:
     - uses: actions/checkout@v2
@@ -120,6 +157,8 @@ jobs:
   collect-artifacts:
     runs-on: ubuntu-latest
     needs: [source, manylinux, windows-macos]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+
     steps:
     - uses: actions/download-artifact@v2
       id: download
