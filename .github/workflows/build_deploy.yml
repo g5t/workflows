@@ -124,7 +124,6 @@ jobs:
         name: ${{ matrix.os }} - python ${{ matrix.python-version }}
         path: dist/*manylinux*.whl
 
-
   source:
     runs-on: ubuntu-latest
     needs: [test]
@@ -153,7 +152,6 @@ jobs:
         name: source
         path: dist/*.tar.gz
 
-
   collect-artifacts:
     runs-on: ubuntu-latest
     needs: [source, manylinux, windows-macos]
@@ -165,16 +163,10 @@ jobs:
       with:
         path: artifacts
 
-    - name: Display structure of downloaded files
-      run: ls -R ${{ steps.download.outputs.download-path }}
-
     - name: Move artifacts into a single folder
       run : |
         mkdir dist
         find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
-
-    - name: Verify that everything is in one place
-      run: ls -R dist
 
     - name: Attach artifacts to GitHub tagged release
       uses: ncipollo/release-action@v1
