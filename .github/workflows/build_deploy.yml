@@ -19,6 +19,7 @@ jobs:
       with:
         python-version: 3.8
     - run: python -m pip install --upgrade pip numpy
+      shell: bash
     - uses: g5t/make-test-action@v0
       with:
         build: ${{ matrix.build_type }}
