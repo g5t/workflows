@@ -1,0 +1,32 @@
+name: 'CMake CTest'
+description: 'Build and test with CMake and CTest'
+inputs:
+  build:
+    description: "CMake build specification"
+    required: true
+    default: 'Release'
+outputs:
+  test-status:
+    description: "Output status of CTest"
+    value: ${{ steps.test.ouputs.result }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ inputs.build }}
+    - name: build
+      run: cmake --build build --config ${{ inputs.build }}
+    - name: test
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
+        execute_process(
+          COMMAND ctest -j ${N} -C ${{ inputs.build }} --output-on-failure
+          WORKING_DIRECTORY build
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "${{ input.build }} tests failed")
+        endif()

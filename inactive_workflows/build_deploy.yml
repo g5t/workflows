@@ -15,10 +15,27 @@ jobs:
         build_type: [Release]
 
     steps:
-    - uses: ./.github/actions/cmake_ctest
-      with:
-        runner: ${{ matrix.os }}
-        build: ${{ matrix.build_type }}
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
+        execute_process(
+          COMMAND ctest -j ${N} -C ${{ matrix.build_type }} --output-on-failure
+          WORKING_DIRECTORY build
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Running tests failed!")
+        endif()
 
   windows-macos:
     runs-on: ${{ matrix.os }}
