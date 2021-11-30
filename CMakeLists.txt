@@ -66,6 +66,8 @@ if (PYTHON_EXECUTABLE)
   message(STATUS "              provided python at ${PYTHON_EXECUTABLE}")
   # Ensure the provided Python interpreter is used
   set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+else()
+  message(STATUS "              not provided with any python executable?")
 endif()
 # With modern CMake, this find_package forces pybind11 to use FindPython instead of its custom tools
 find_package(Python3 COMPONENTS Interpreter Development)
