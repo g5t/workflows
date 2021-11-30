@@ -7,17 +7,16 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
         os: [macos-10.15, ubuntu-20.04, windows-2019]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
         build_type: [Release]
-
     steps:
     - uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: ${{ matrix.python-version }}
     - name: configure Python
       shell: bash
       run: |
