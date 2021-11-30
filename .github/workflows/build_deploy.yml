@@ -15,9 +15,8 @@ jobs:
         build_type: [Release]
 
     steps:
-    - uses: ./.github/actions/cmake_ctest
+    - uses: g5t/make-test-action@v0
       with:
-        runner: ${{ matrix.os }}
         build: ${{ matrix.build_type }}
 
   windows-macos:
