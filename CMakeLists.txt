@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18.2) 
+cmake_minimum_required(VERSION 3.18.2)
 cmake_policy(SET CMP0076 NEW) # Ensure target_sources converts relative paths
 
 project(module)
@@ -63,6 +63,7 @@ endif (PROJECT_PROFILING)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (PYTHON_EXECUTABLE)
+  message(STATUS "              provided python at ${PYTHON_EXECUTABLE}")
   # Ensure the provided Python interpreter is used
   set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
 endif()
@@ -160,4 +161,3 @@ else (DOXYGEN_FOUND)
   message(STATUS "Install Doxygen to build documentation")
 endif (DOXYGEN_FOUND)
 endif()
-
