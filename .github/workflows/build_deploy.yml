@@ -16,7 +16,7 @@ jobs:
     steps:
     - if: startsWith(matrix.os, 'macos')
       shell: bash
-      run: brew install libomp cmake
+      run: brew install libomp homebrew/cask/cmake
     - uses: actions/setup-python@v2
       with:
         architecture: ${{ matrix.architecture }}
