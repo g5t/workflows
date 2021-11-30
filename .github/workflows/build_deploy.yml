@@ -48,6 +48,7 @@ jobs:
   macos:
     runs-on: macos-10.15
     needs: [test]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     strategy:
       fail-fast: false
       matrix:
@@ -58,6 +59,8 @@ jobs:
       with:
         arcitecture: ${{ matrix.architecture }}
         python-version: ${{ matrix.python-version }}
+    - shell: bash
+      run: brew install openmp cmake
     - uses: g5t/manymac-action@v0
       with:
         name: "macos-${{matrix.architecture}}-py${{matrix.python-version}}"
@@ -95,7 +98,7 @@ jobs:
     - name: Attach wheel to action
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }} - python ${{ matrix.python-version }}
+        name: manylinux-${{matrix.architecture}}-${{ matrix.python-version }}
         path: dist/*manylinux*.whl
 
   source:
@@ -150,9 +153,10 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: "dist/*.whl,dist/*.tar.gz"
 
-#    - name: Publish artifacts to PyPI
-#      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-#      uses: pypa/gh-action-pypi-publish@release/v1
-#      with:
-#        user: ${{ secrets.PYPI_USERNAME }}
-#        password: ${{ secrets.PYPI_PASSWORD }}
+   - name: Publish artifacts to PyPI
+     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+     uses: pypa/gh-action-pypi-publish@release/v1
+     with:
+       user: __token__
+       password: ${{ secrets.PYPI_TOKEN }}
+       repository_url: https://test.pypi.org/legacy/
