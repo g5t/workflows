@@ -1,4 +1,4 @@
-name: Build and Publish source and wheels to tag
+name: Build and Publish source and wheels
 
 on:
     push:
@@ -14,6 +14,9 @@ jobs:
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
         build_type: [Release]
     steps:
+    - shell: bash
+      run: brew install libomp cmake
+      if: startsWith(${{ matrix.os }}, 'macos')
     - uses: actions/setup-python@v2
       with:
         architecture: ${{ matrix.architecture }}
