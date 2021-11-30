@@ -14,7 +14,7 @@ jobs:
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
         build_type: [Release]
     steps:
-    - if: startsWith(${{ matrix.os }}, 'macos')
+    - if: startsWith(matrix.os, 'macos')
       shell: bash
       run: brew install libomp cmake
     - uses: actions/setup-python@v2
