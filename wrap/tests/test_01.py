@@ -25,11 +25,11 @@ class ModuleTester (unittest.TestCase):
   def test_01(self):
     one, two, three = 1, 2 ,3
     self.assertEqual(s.add(one, two), three)
-    self.assertEqual(s.subtract(three, one), two)
 
   def test_02(self):
-    # intentionally fail to test CI
-    self.assertEqual(1, 2)
+    one, two, three = 1, 2 ,3
+    self.assertEqual(s.subtract(three, one), two)
+
 
 if __name__ == '__main__':
   unittest.main()
