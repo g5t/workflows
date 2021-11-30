@@ -74,6 +74,7 @@ class CMakeBuild(build_ext):
         if is_mingw():
             cmake_args += ['-G','Unix Makefiles'] # Must be two entries to work
 
+        print(f"telling CMake about Python executable: {sys.executable}")
         cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                        '-DPYTHON_EXECUTABLE=' + sys.executable]
 
