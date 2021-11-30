@@ -114,10 +114,10 @@ with open("VERSION", "r") as fh:
 	VERSION_NUMBER = fh.readline().strip()
 
 KEYWORDARGS = dict(
-    name='module',
+    name='g5t-module',
     version=VERSION_NUMBER,
     author='Greg Tucker',
-    author_email='gregory.tucker@gmail.com',
+    author_email='gregory.tucker@ess.eu',
     description='Test Module.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
