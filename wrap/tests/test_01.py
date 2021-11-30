@@ -27,5 +27,9 @@ class ModuleTester (unittest.TestCase):
     self.assertEqual(s.add(one, two), three)
     self.assertEqual(s.subtract(three, one), two)
 
+  def test_02(self):
+    # intentionally fail to test CI
+    self.assertEqual(1, 2)
+
 if __name__ == '__main__':
   unittest.main()
