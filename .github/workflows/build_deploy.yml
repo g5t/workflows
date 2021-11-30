@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - shell: bash
-      run: echo "pythonVersionList=['3.7', '3.8', '3.9', '3.10']" >> $GITHUB_ENV
+      run: echo "pythonVersionList='3.7', '3.8', '3.9', '3.10'" >> $GITHUB_ENV
     - shell: bash
-      run: echo "cpythonVersionList=[ 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39', 'cp310-cp310']" >> $GITHUB_ENV
+      run: echo "cpythonVersionList='cp37-cp37m', 'cp38-cp38', 'cp39-cp39', 'cp310-cp310'" >> $GITHUB_ENV
 
   test:
     runs-on: ${{ matrix.os }}
@@ -20,7 +20,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [macos-10.15, ubuntu-20.04, windows-2019]
-        python-version: ${{ env.pythonVersionList }}
+        python-version: [${{ env.pythonVersionList }}]
         build_type: [Release]
     steps:
     - uses: actions/setup-python@v2
@@ -45,7 +45,7 @@ jobs:
       fail-fast: true
       matrix:
         architecture: [x64]
-        python-version: ${{ env.pythonVersionList }}
+        python-version: [${{ env.pythonVersionList }}]
     steps:
     - uses: actions/setup-python@v2
       with:
@@ -63,7 +63,7 @@ jobs:
       fail-fast: true
       matrix:
         architecture: [x64]
-        python-version: ${{ env.pythonVersionList }}
+        python-version: [${{ env.pythonVersionList }}]
     steps:
     - uses: actions/setup-python@v2
       with:
@@ -84,7 +84,7 @@ jobs:
       fail-fast: true
       matrix:
         architecture: [x64]
-        python-version: ${{ env.cpythonVersionList }}
+        python-version: [${{ env.cpythonVersionList }}]
 
     steps:
     - uses: actions/checkout@v2
