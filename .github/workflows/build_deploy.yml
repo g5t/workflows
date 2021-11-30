@@ -22,6 +22,7 @@ jobs:
       shell: bash
     - uses: g5t/make-test-action@v0
       with:
+        flags: "-DPYTHON_EXECUTABLE=${{ env.pythonLocation }}"
         build: ${{ matrix.build_type }}
 
   windows-macos:
