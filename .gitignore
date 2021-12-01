@@ -4,3 +4,5 @@
 dist/
 wheelhouse/
 */version.hpp
+
+__pycache__
