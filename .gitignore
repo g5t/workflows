@@ -6,3 +6,5 @@ wheelhouse/
 */version.hpp
 
 __pycache__
+
+*.egg-info
