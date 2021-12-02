@@ -4,16 +4,10 @@
 void wrap_version(pybind11::module & m){
   using namespace project::version;
   m.attr("__version__") = version_number;
-  std::string v = version_number;
-  if (!std::string(git_revision).empty()){
-    v += "+" + std::string(git_branch);
-    v += "." + std::string(git_revision).substr(0,7);
-  }
-  m.attr("__version__") = v;
-  m.attr("version") = v;
-  m.attr("git_revision") = git_revision;
-  m.attr("build_datetime") = build_datetime;
-  m.attr("build_hostname") = build_hostname;
+	m.attr("__git_branch") = git_branch;
+  m.attr("__git_revision") = git_revision;
+  m.attr("__build_datetime") = build_datetime;
+  m.attr("__build_hostname") = build_hostname;
 }
 
 
