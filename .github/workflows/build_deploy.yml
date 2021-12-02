@@ -156,7 +156,7 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     steps:
-    - uses: geekyeggo/delete-artifact@v1-glob-support
+    - uses: geekyeggo/delete-artifact@1-glob-support
       with:
         name: cmake-*
     - uses: actions/download-artifact@v2
