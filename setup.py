@@ -11,10 +11,8 @@ from setuptools.command.build_ext import build_ext
 
 from pathlib import Path
 from importlib.util import find_spec
-addpaths = [Path(), ] # we might be in .../build/wrap/
+addpaths = [Path(), ] 
 sys.path[:0] = [str(path.absolute()) for path in addpaths]
-
-
 
 import versioneer
 

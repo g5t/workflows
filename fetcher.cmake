@@ -11,7 +11,13 @@ function(git_fetch package version source required)
         message(STATUS "Found system ${package}")
     else()
         message(STATUS "Fetch ${package} ${version} from ${source}")
-        FetchContent_Declare(${package} GIT_REPOSITORY ${source} GIT_TAG v${version})
+        FetchContent_Declare(
+          ${package}
+          GIT_REPOSITORY ${source}
+          GIT_TAG v${version}
+          GIT_SHALLOW TRUE
+          GIT_PROGRESS TRUE
+        )
         FetchContent_GetProperties(${package})
         if (NOT "${package}_POPULATED")
             FetchContent_Populate(${package})
