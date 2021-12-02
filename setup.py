@@ -111,13 +111,10 @@ class CMakeBuild(build_ext):
 with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
 
-with open("VERSION", "r") as fh:
-	VERSION_NUMBER = fh.readline().strip()
-
 KEYWORDARGS = dict(
     name='g5t-module',
     version=versioneer.get_version(),
-    cmdlcass=versioneer.get_cmdclass(dict(build_ext=CMakeBuild)),
+    cmdclass=versioneer.get_cmdclass(dict(build_ext=CMakeBuild)),
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
     description='Test Module.',

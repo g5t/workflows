@@ -108,5 +108,8 @@ endfunction()
 
 
 if (RUN_CHECK_GIT_VERSION)
-  checkGitVersion()
+  checkGitVersion(GIT_VERSION)
+  if (NOT DEFINED GIT_VERSION)
+    set(GIT_VERSION "UNKNOWN")
+  endif()
 endif()
