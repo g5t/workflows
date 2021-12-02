@@ -8,6 +8,7 @@ from subprocess import CalledProcessError, check_output, check_call
 from distutils.version import LooseVersion
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
+import versioneer
 
 # We can use cmake provided from pip which (normally) gets installed at /bin
 # Except that in the manylinux builds it's placed at /opt/python/[version]/bin/
@@ -115,15 +116,17 @@ with open("VERSION", "r") as fh:
 
 KEYWORDARGS = dict(
     name='g5t-module',
-    version=VERSION_NUMBER,
+    version=versioneer.get_version(),
+    cmdlcass=versioneer.get_cmdclass(dict(build_ext=CMakeBuild)),
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
     description='Test Module.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension('module._module')],
+    script_args=['build'],
+    options={'build': {'build_temp': 'cmake-build'}},
     packages=find_packages(),
-    cmdclass=dict(build_ext=CMakeBuild),
     url="https://github.com/g5t/workflow",
     zip_safe=False,
     classifiers=[

@@ -2,6 +2,7 @@ import subprocess
 import sys
 import platform
 from datetime import datetime
+import versioneer
 
 def version_info():
     try:
@@ -11,12 +12,8 @@ def version_info():
         git_revision = ""
         git_branch = "non-git"
 
-    def read_version():
-        with open("VERSION") as f:
-            return f.readline().strip()
-
     build_datetime = datetime.now().isoformat(timespec='minutes')
-    version_number = read_version()
+    version_number = versioneer.get_version()
     hostname = platform.node()
     return git_revision, git_branch, build_datetime, version_number, hostname
 

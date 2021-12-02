@@ -1,5 +1,3 @@
-add_dependencies(${PROJECT_PYTHON_MODULE} write_version_info)
-
 set(PROJECT_PYTHON_MODULE_SOURCES
   "${PROJECT_PYTHON_MODULE}.cpp" # this needs to be first
 )

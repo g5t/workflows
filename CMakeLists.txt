@@ -82,23 +82,11 @@ endif()
 # Attempt to find pybind11 to handle CPython bindings
 git_fetch(pybind11 ${MINIMUM_PYBIND11_VERSION} ${FETCH_PYBIND11_REPO} ${REQUIRE_SYSTEM_PYBIND11})
 
-
 # Read the version of module
-execute_process(COMMAND ${Python3_EXECUTABLE} -c "from version_info import version_number; version_number()"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE PROJECT_VERSION)
+include(checkgit.cmake)
+checkGitSetup() # defines/creates version.hpp; and library 'git_version'
 # So that we can print it to the console along with the specified build type
-message(STATUS "Build module v${PROJECT_VERSION} with type ${CMAKE_BUILD_TYPE}")
-
-# Create a header file with information about the last time tye python module was built
-# This file will be updated even if no other source files are modified but it does not
-# cause relinking the module (if it is the *only* file which changes)
-add_custom_target(write_version_info
-  COMMAND ${Python3_EXECUTABLE} version_info.py src/version.hpp
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-
+message(STATUS "Build module v${GIT_VERSION} with type ${CMAKE_BUILD_TYPE}")
 
 # We will always build the python module
 list(APPEND CXX_TARGETS ${PROJECT_PYTHON_MODULE})
@@ -120,6 +108,11 @@ endif()
 
 # add the dependencies and include directories for all CXX targets:
 add_subdirectory(src)  # important
+
+foreach(CXX_TARGET IN LISTS CXX_TARGETS)
+  addGitVersion(${CXX_TARGET})
+  #target_link_libraries(${CXX_TARGET} PUBLIC git_version)
+endforeach()
 
 if (PROJECT_BUILD_CXX_TESTING OR PROJECT_BUILD_PYTHON_TESTING)
 	include(CTest)
