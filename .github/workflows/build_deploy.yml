@@ -33,7 +33,7 @@ jobs:
         build: ${{ matrix.build_type }}
         dir: 'cmake-build'
     - shell: bash
-      run: tar -zcvf cmake-build
+      run: tar -zcf cmake-build.tar.gz cmake-build
     - uses: actions/upload-artifact@v2
       with:
         name: cmake-${{ matrix.os }}-${{ matrix.architecture }}-${{ matrix.python-version }}
