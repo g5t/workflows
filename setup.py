@@ -8,6 +8,14 @@ from subprocess import CalledProcessError, check_output, check_call
 from distutils.version import LooseVersion
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
+
+from pathlib import Path
+from importlib.util import find_spec
+addpaths = [Path(), ] # we might be in .../build/wrap/
+sys.path[:0] = [str(path.absolute()) for path in addpaths]
+
+
+
 import versioneer
 
 # We can use cmake provided from pip which (normally) gets installed at /bin
@@ -121,7 +129,6 @@ KEYWORDARGS = dict(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension('module._module')],
-    script_args=['build'],
     options={'build': {'build_temp': 'cmake-build'}},
     packages=find_packages(),
     url="https://github.com/g5t/workflow",
