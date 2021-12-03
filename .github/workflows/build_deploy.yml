@@ -61,7 +61,6 @@ jobs:
     - uses: g5t/manywin-action@v1
       with:
         name: "windows-${{matrix.architecture}}-py${{matrix.python-version}}"
-        extra: setuptools_scm
 
   macos:
     runs-on: macos-10.15
@@ -87,7 +86,6 @@ jobs:
     - uses: g5t/manymac-action@v1
       with:
         name: "macos-${{matrix.architecture}}-py${{matrix.python-version}}"
-        extra: setuptools_scm
 
   manylinux:
     runs-on: ubuntu-latest
@@ -102,6 +100,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Setup Python
       uses: actions/setup-python@v2
@@ -131,6 +131,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Setup Python
       uses: actions/setup-python@v2
