@@ -9,13 +9,6 @@ from distutils.version import LooseVersion
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
-from pathlib import Path
-from importlib.util import find_spec
-addpaths = [Path(), ] 
-sys.path[:0] = [str(path.absolute()) for path in addpaths]
-
-import versioneer
-
 # We can use cmake provided from pip which (normally) gets installed at /bin
 # Except that in the manylinux builds it's placed at /opt/python/[version]/bin/
 # (as a symlink at least) which is *not* on the path.
@@ -119,8 +112,7 @@ with open("README.md", "r") as fh:
 
 KEYWORDARGS = dict(
     name='g5t-module',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(dict(build_ext=CMakeBuild)),
+    cmdclass=dict(build_ext=CMakeBuild),
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
     description='Test Module.',

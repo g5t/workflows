@@ -51,7 +51,7 @@ function(checkGitVersion git_version)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
   execute_process(
-    COMMAND python -c "import versioneer; print(versioneer.get_version())"
+    COMMAND python -c "import setuptools_scm as s; print(s.get_version())"
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     OUTPUT_VARIABLE GIT_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
