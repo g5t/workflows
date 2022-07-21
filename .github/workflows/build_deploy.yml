@@ -1,188 +1,149 @@
 name: Build and Publish source and wheels
 
 on:
-    push:
-    pull_request:
+  push:
+  pull_request:
 
 jobs:
-  test:
+  cmake-ctest:
+    if: ${{ contains(github.event_name, 'push') }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: ['macos-10.15', 'ubuntu-20.04', 'windows-2019']
-        architecture: [x64]
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-        build_type: [Release]
+        os: [ macos-10.15, ubuntu-20.04, windows-2019 ]
+        python-version: [ '3.10' ]
+        cmake-type: [ Release ]
     steps:
-    - shell: bash
-      if: startsWith(matrix.os, 'macos')
-      run: brew install libomp
-    - uses: actions/setup-python@v2
-      with:
-        architecture: ${{ matrix.architecture }}
-        python-version: ${{ matrix.python-version }}
-    - name: configure Python
-      shell: bash
-      run: |
-        python -m pip install --upgrade pip numpy setuptools_scm
-        echo "pythonInterpreter=`which python`" >> $GITHUB_ENV
-    - uses: g5t/make-test-action@v0
-      with:
-        flags: "-D Python3_EXECUTABLE=${{ env.pythonInterpreter }}"
-        build: ${{ matrix.build_type }}
-        dir: 'cmake-build'
-    - shell: bash
-      run: tar -zcf cmake-build.tar.gz cmake-build
-    - uses: actions/upload-artifact@v2
-      with:
-        name: cmake-${{ matrix.os }}-${{ matrix.architecture }}-${{ matrix.python-version }}
-        path: cmake-build.tar.gz
+      - uses: brille/python-cmake-ctest-action@v1
+        with:
+          os: ${{ matrix.os }}
+          python-version: ${{ matrix.python-version }}
+          cmake-type: ${{ matrix.cmake-type }}
 
-  windows:
-    runs-on: windows-2019
-    needs: [test]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    strategy:
-      fail-fast: true
-      matrix:
-        architecture: [x64]
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - uses: actions/download-artifact@v2
-      with:
-        name: cmake-windows-2019-${{ matrix.architecture }}-${{ matrix.python-version }}
-    - shell: bash
-      run: tar -zxf cmake-build.tar.gz
-    - uses: actions/setup-python@v2
-      with:
-        architecture: ${{ matrix.architecture }}
-        python-version: ${{ matrix.python-version }}
-    - uses: g5t/manywin-action@v1
-      with:
-        name: "windows-${{matrix.architecture}}-py${{matrix.python-version}}"
-
-  macos:
-    runs-on: macos-10.15
-    needs: [test]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    strategy:
-      fail-fast: true
-      matrix:
-        architecture: [x64]
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    steps:
-    - uses: actions/download-artifact@v2
-      with:
-        name: cmake-macos-10.15-${{ matrix.architecture }}-${{ matrix.python-version }}
-    - shell: bash
-      run: tar -zxf cmake-build.tar.gz
-    - uses: actions/setup-python@v2
-      with:
-        architecture: ${{ matrix.architecture }}
-        python-version: ${{ matrix.python-version }}
-    - shell: bash
-      run: brew install libomp
-    - uses: g5t/manymac-action@v1
-      with:
-        name: "macos-${{matrix.architecture}}-py${{matrix.python-version}}"
-
-  manylinux:
+  cibuildwheel:
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
-    needs: [test]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        architecture: [x64]
-        python-version: ['cp37-cp37m', 'cp38-cp38', 'cp39-cp39', 'cp310-cp310']
-
+        platform: [ manylinux, musllinux ]
+        python-version: [cp36, cp37, cp38, cp39, cp310]
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: brille/python-hdf5-cibuildwheel-action@v1
+        with:
+          platform: ${{ matrix.platform }}
+          python-version: ${{ matrix.python-version }}
+          arch: auto64
 
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-        architecture: ${{ matrix.architecture }}
-
-    - name: Build manylinux python ${{ matrix.python-version }} wheel
-      uses: RalfG/python-wheels-manylinux-build@v0.4.0-manylinux2010_x86_64
-      with:
-        python-versions: ${{ matrix.python-version }}
-        build-requirements: 'cmake setuptools_scm'
-        system-packages: ''
-        package-path: ''
-        pip-wheel-args: '-w ./dist --no-deps'
-
-    - name: Attach wheel to action
-      uses: actions/upload-artifact@v2
-      with:
-        name: manylinux-${{matrix.architecture}}-${{ matrix.python-version }}
-        path: dist/*manylinux*.whl
+  buildwheel:
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-2019, macos-10.15 ]
+        python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
+    steps:
+      - uses: brille/python-hdf5-buildwheel-action@v1
+        with:
+          os: ${{ matrix.os }}
+          python-version: ${{ matrix.python-version }}
+          arch: auto64
 
   source:
     runs-on: ubuntu-latest
-    needs: [test]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-        architecture: x64
-
-    - name: Update Python dependencies
-      run: python -m pip install --upgrade pip setuptools setuptools_scm
-      shell: bash
-
-    - name: Build source tarball
-      run: python setup.py sdist
-      shell: bash
-
-    - name: Attach tarball to action
-      uses: actions/upload-artifact@v2
-      with:
-        name: source
-        path: dist/*.tar.gz
+      - uses: actions/checkout@v2
+      -
+        name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          architecture: x64
+      -
+        name: Update Python dependencies
+        run: python -m pip install --upgrade pip setuptools setuptools_scm
+        shell: bash
+      -
+        name: Build source tarball
+        run: python setup.py sdist
+        shell: bash
+      -
+        name: Attach tarball to action
+        uses: actions/upload-artifact@v2
+        with:
+          name: source
+          path: dist/*.tar.gz
 
   collect-artifacts:
-    runs-on: ubuntu-latest
-    needs: [source, manylinux, windows, macos]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-
+    runs-on: ubuntu-latest
+    needs: [source, cibuildwheel, buildwheel]
     steps:
-    - uses: actions/download-artifact@v2
-      id: download
-      with:
-        path: artifacts
-    - name: Remove CMake artifacts
-      run: find ${{ steps.download.outputs.download-path }} -type f -name "cmake-*" -exec rm {} \;
+      - uses: actions/download-artifact@v2
+        id: download
+        with:
+          path: artifacts
+      -
+        name: Move artifacts into a single folder
+        run : |
+          mkdir dist
+          find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
+      -
+        name: Attach artifacts to GitHub tagged release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "dist/*.whl,dist/*.tar.gz"
+      -
+        name: Publish artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
 
-    - name: Move artifacts into a single folder
-      run : |
-        mkdir dist
-        find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
-
-    - name: Attach artifacts to GitHub tagged release
-      uses: ncipollo/release-action@v1
-      with:
-        draft: true
-        prerelease: true
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: "dist/*.whl,dist/*.tar.gz"
-
-    - name: Publish artifacts to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+#  sphinx:
+#    runs-on: ubuntu-latest
+#    needs: [ cibuildwheel ]
+#    steps:
+#    - name: Checkout brille repository
+#      uses: actions/checkout@v2
+#      with:
+#        path: repository
+#    -
+#      name: Checkout brille.github.io repository
+#      uses: actions/checkout@v2
+#      with:
+#        fetch-depth: 0
+#        repository: brille/brille.github.io
+#        token: ${{ secrets.BRILLE_GITHUB_IO_TOKEN }}
+#        path: io
+#    -
+#      name: Download 'musllinux' wheel
+#      uses: actions/download-artifact@v2
+#      id: path
+#      with:
+#        name: cp39-musllinux_auto64
+#        path: wheelhouse
+#    -
+#      name: Get downloaded wheel name
+#      id: wheel
+#      run: echo "::set-output name=wheel::wheelhouse/$(ls)"
+#      working-directory: wheelhouse
+#    -
+#      run: echo "${{ steps.wheel.outputs.wheel }}"
+#    -
+#      name: Sphinx Docker build
+#      uses: g5t/sphinxer@v2.1.0
+#      with:
+#        source_dir: repository
+#        pages_dir: io
+#        is_release: ${{ contains(github.event_name, 'release') }}
+#        create_readme: true
+#        wheel: "${{ steps.wheel.outputs.wheel }}"
+#        html_dir: ${{ github.head_ref }}
