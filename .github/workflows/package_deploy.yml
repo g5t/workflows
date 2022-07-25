@@ -1,0 +1,73 @@
+name: Package and Deploy
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  source:
+    name: Build Source distribution
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - run: pipx run build --sdist
+    - run: pipx run twine check dist/*
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist/*.tar.gz
+
+  wheel:
+    name: Build wheels on ${ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macos-11, windows-2019]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - uses: pypa/cibuildhwheel@v2.8.0
+      env:
+        MACOSX_DEPLOYMENT_TARGET: "10.15"
+
+    - name: Verify clean directory
+      run: git diff --exit-code
+      shell: bash
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: wheelhouse/*.whl
+
+  upload:
+    name: Deploy packages
+    needs: [source, wheel]
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    steps:
+    - uses: actions/download-artifacts@v2
+    - name: Attach artifacts to GitHub tagged release
+      uses: ncipollo/release-action@v1
+      with:
+        draft: true
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "dist/*.whl,dist/*.tar.gz"
+    - name: Publish artifacts to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/

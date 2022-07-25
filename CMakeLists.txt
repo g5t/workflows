@@ -1,47 +1,84 @@
 cmake_minimum_required(VERSION 3.18.2)
 cmake_policy(SET CMP0076 NEW) # Ensure target_sources converts relative paths
 
-project(module)
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose build type" FORCE)
+endif()
+
+include(checkgit.cmake)
+checkGitSetup("MODULE")
+message(STATUS "Build module v${MODULE_VERSION} with type ${CMAKE_BUILD_TYPE}")
+
+project(module VERSION ${MODULE_SAFE_VERSION} LANGUAGES CXX)
 set(PROJECT_PYTHON_MODULE _module)
+set(PROJECT_PYTHON_DESTINATION module})
 set(TESTING_TARGET tester)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Make the availability of testing optional
-option(PROJECT_BUILD_TESTING "Build C++ tests for module" OFF)
-option(PROJECT_BUILD_PYTHON_TESTING "Build python tests for module" ON)
-# Allow system pybind11 to be required
-option(REQUIRE_SYSTEM_PYBIND11 "Never attempt to fetch pybind11" OFF)
-mark_as_advanced(REQUIRE_SYSTEM_PYBIND11)
-# Allow system catch2 to be required
-option(REQUIRE_SYSTEM_CATCH2 "Never attempt to fetch catch2" OFF)
-mark_as_advanced(REQUIRE_SYSTEM_CATCH2)
-# Allow the log level to be set by cmake
-set(PROJECT_LOGLEVEL "INFO" CACHE STRING "Emit log messages to standard out (DEBUG|VERBOSE)")
+if (SKBUILD)
+  set(PROJECT_BUILD_TESTING OFF)
+  set(PROJECT_BUILD_PYTHON_TESTING ON)
+  set(PROJECT_LOGLEVEL "INFO")
+endif()
+if (NOT DEFINED PROJECT_BUILD_TESTING)
+  option(PROJECT_BUILD_TESTING "Build C++ tests for module" OFF)
+endif()
+if (NOT DEFINED PROJECT_BUILD_PYTHON_TESTING)
+  option(PROJECT_BUILD_PYTHON_TESTING "Build python tests for module" ON)
+endif()
+if (NOT DEFINED PROJECT_LOGLEVEL)
+  set(PROJECT_LOGLEVEL "INFO" CACHE STRING "Emit log messages to standard out (DEBUG|VERBOSE)")
+endif()
 # Special option for profiling runs
 option(PROJECT_PROFILING "Emit profiling output to standard out" OFF)
 
-# Define the minimum version of libraries needed
-set(MINIMUM_PYBIND11_VERSION 2.8.1)
-set(FETCH_PYBIND11_REPO https://github.com/pybind/pybind11)
-set(MINIMUM_CATCH2_VERSION 2.13.9)
-set(FETCH_CATCH2_REPO https://github.com/catchorg/Catch2)
 
-if (MSVC)
-    # warning level 4 -- add /WX for all warnings as errors
-    add_compile_options(/W4)
-    # suppress MSVC warning C4996 about 'localtime' vs 'localtime_s'
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-else()
-    # lots of warnings -- add -Werror for  all warnings as errors
-    add_compile_options(-Wall -Wextra -pedantic)
+if (PYTHON_EXECUTABLE)
+  # Ensure the provided Python interpreter is used
+  set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+endif()
+# With modern CMake, this find_package forces pybind11 to use FindPython instead of its custom tools
+find_package(Python3 COMPONENTS Interpreter Development)
+
+if (NOT DEFINED PYTHON_EXECUTABLE)
+  set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 endif()
 
-set(CMAKE_MACOSX_RPATH 1)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
-endif(NOT CMAKE_BUILD_TYPE)
+# Use conan to fetch/configure/build pybind11, catch2 and hdf5
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+  message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+  file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
+          "${CMAKE_BINARY_DIR}/conan.cmake"
+          EXPECTED_HASH SHA256=5cdb3042632da3efff558924eecefd580a0e786863a857ca097c3d1d43df5dcd
+          TLS_VERIFY ON)
+endif()
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR})
+
+conan_cmake_configure(
+        REQUIRES
+        pybind11/2.6.2
+        catch2/2.13.9
+        GENERATORS
+        cmake_find_package
+        OPTIONS
+)
+
+conan_cmake_autodetect(conan_settings)
+
+conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_BINARY_DIR}
+        BUILD outdated
+        REMOTE conancenter
+        SETTINGS ${conan_settings}
+        OUTPUT_QUIET)
+
+find_package(Catch2 REQUIRED)
+find_package(pybind11 REQUIRED)
+
 
 if (${PROJECT_LOGLEVEL} STREQUAL "VERBOSE")
   message(STATUS "Verbose logging emitted at runtime")
@@ -59,34 +96,6 @@ if (PROJECT_PROFILING)
   add_definitions(-DPROFILING)
 endif (PROJECT_PROFILING)
 
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-if (PYTHON_EXECUTABLE)
-  # Ensure the provided Python interpreter is used
-  set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
-endif()
-# With modern CMake, this find_package forces pybind11 to use FindPython instead of its custom tools
-find_package(Python3 COMPONENTS Interpreter Development)
-
-include(fetcher.cmake)
-
-# Attempt to find catch2 to handle C++ testing
-if(PROJECT_BUILD_CXX_TESTING)
-  git_fetch(catch2 ${MINIMUM_CATCH2_VERSION} ${FETCH_CATCH2_REPO} ${REQUIRE_SYSTEM_CATCH2})
-  list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/contrib")
-else()
-  # Since no testing is to be built, fake that we've found Catch2.
-  set(Catch2_FOUND ON)
-endif()
-# Attempt to find pybind11 to handle CPython bindings
-git_fetch(pybind11 ${MINIMUM_PYBIND11_VERSION} ${FETCH_PYBIND11_REPO} ${REQUIRE_SYSTEM_PYBIND11})
-
-# Read the version of module
-include(checkgit.cmake)
-checkGitSetup() # defines/creates version.hpp; and library 'git_version'
-# So that we can print it to the console along with the specified build type
-message(STATUS "Build module v${GIT_VERSION} with type ${CMAKE_BUILD_TYPE}")
 
 # We will always build the python module
 list(APPEND CXX_TARGETS ${PROJECT_PYTHON_MODULE})
@@ -153,3 +162,6 @@ else (DOXYGEN_FOUND)
   message(STATUS "Install Doxygen to build documentation")
 endif (DOXYGEN_FOUND)
 endif()
+
+
+install(TARGETS ${PROJECT_PYTHON_MODULE} LIBRARY DESTINATION ${PROJECT_PYTHON_DESTINATION})
