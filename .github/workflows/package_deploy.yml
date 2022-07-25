@@ -68,7 +68,7 @@ jobs:
       id: download
       with:
         path: artifacts
-    - name: Move artifact into one folder
+    - name: Move artifacts into a single folder
       run: |
         mkdir dist
         find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
@@ -80,11 +80,10 @@ jobs:
         prerelease: true
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: "dist/*.whl,dist/*.tar.gz"
-
-      - name: Publish artifacts to PyPI
-        if: github.event.action == 'published'
-        uses: pypa/gh-action-pypi-publish@release/v1.5.0
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+    - name: Publish artifacts to PyPI
+      if: github.event.action == 'published'
+      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
