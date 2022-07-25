@@ -26,12 +26,17 @@ jobs:
         path: dist/*.tar.gz
 
   wheel:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.python }} ${{ matrix.variant.platform }} wheel on ${{ matrix.variant.os }}
+    runs-on: ${{ matrix.variant.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-11, windows-2019]
+        variant:
+          - {os: ubuntu-20.04, platform: 'manylinux'}
+          - {os: ubuntu-20.04, platform: 'musllinux'}
+          - {os: macos-11, platform: 'macosx'}
+          - {os: windows-2019, platform: 'win'}
+        python: ['cp36', 'cp37', 'cp38', 'cp39', 'cp310']
 
     steps:
     - uses: actions/checkout@v3
@@ -40,6 +45,7 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.8.0
       env:
+        CIBW_BUILD: "${{ matrix.python }}-${{ matrix.variant.platform }}-*"
         MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Verify clean directory
@@ -48,41 +54,36 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: dist
+        name: "${{ matrix.python }}-${{ matrix.variant.platform }}"
         path: wheelhouse/*.whl
 
   draft:
     name: Deploy packages
     needs: [source, wheel]
     runs-on: ubuntu-20.04
-    if: github.event_name == 'release' && (github.event.action == 'created' || github.event.action == 'edited')
+    if: github.event_name == 'release'
 
     steps:
     - uses: actions/download-artifacts@v2
+      id: download
+      with:
+        path: artifacts
+    - name: Move artifact into one folder
+      run: |
+        mkdir dist
+        find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
+
     - name: Attach artifacts to GitHub tagged draft release
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        draft: true
+        draft: github.event.action != 'published'
         prerelease: true
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: "dist/*.whl,dist/*.tar.gz"
 
-  upload:
-    name: Deploy packages
-    needs: [source, wheel]
-    runs-on: ubuntu-20.04
-    if: github.event_name == 'release' && github.event.action == 'published'
-
-    steps:
-      - uses: actions/download-artifacts@v2
-      - name: Attach artifacts to GitHub tagged release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "dist/*.whl,dist/*.tar.gz"
       - name: Publish artifacts to PyPI
+        if: github.event.action == 'published'
         uses: pypa/gh-action-pypi-publish@release/v1.5.0
         with:
           user: __token__

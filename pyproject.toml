@@ -24,7 +24,6 @@ testpaths = ["tests"]
 [tool.cibuildwheel]
 archs = ["auto64"]
 test-command = "python -m unittest discover -s {project}/wrap/tests"
-test-extras = ["test"]
 skip = ["pp*"]
 build-verbosity = 1
 before-test = "pip install numpy"
@@ -35,7 +34,12 @@ archs = ["x86_64"]
 [tools.cibuildwheel.windows]
 before-build = "pip install delvewheel"
 repair-wheel-command = "delvewheel repair -w {dest_dir} -v {wheel}"
-test-command = "python -m unittest discover -s {project}\\wrap\\tests"
+
+# For now testing on musl libc requires *building* numpy, which is ridiculous
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-test = ""
+test-command = ""
 
 [tool.setuptools_scm]
 

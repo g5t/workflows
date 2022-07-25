@@ -7,3 +7,4 @@ dependencies:
   - gxx_linux-64=11.1.*
   - ninja=1.11.0
   - pandoc=2.18
+  - numpy
