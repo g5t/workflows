@@ -6,7 +6,8 @@ requires = [
     "setuptools_scm[toml]>=6.2",
     "numpy",
     "scikit-build",
-    "ninja; platform_system!='Windows'"
+    "ninja; platform_system!='Windows'",
+    "conan"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -21,9 +22,16 @@ filterwarnings = ["error"]
 testpaths = ["tests"]
 
 [tool.cibuildwheel]
-test-command = "pytest {project}/tests"
+archs = ["auto64"]
+test-command = "python -m unittest discover -s {project}/wrap/tests"
 test-extras = ["test"]
-test-skip = ["*universal2:arm64"]
+
+[tools.cibuildwheel.macos]
+archs = ["x86_64"]
+
+[tools.cibuildwheel.windows]
+before-build = "pip install delvewheel"
+repair-wheel-command = "delvewheel repair -w {dest_dir} -v {wheel}"
 
 [tool.setuptools_scm]
 
