@@ -5,6 +5,32 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose build type" FORCE)
 endif()
 
+# Currently, scikit-build does not support FindPython.
+if(SKBUILD)
+  set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+  set(Python_INCLUDE_DIR "${PYTHON_INCLUDE_DIR}")
+  unset(PYTHON_EXECUTABLE)
+  unset(PYTHON_INCLUDE_DIR)
+  unset(PYTHON_LIBRARY)
+  unset(PYTHON_VERSION_STRING)
+  unset(PYTHON_NumPy_INCLUDE_DIRS)
+  unset(Python3_NumPy_INCLUDE_DIRS)
+  unset(Python_NumPy_INCLUDE_DIRS)
+  unset(Python_LIBRARY)
+endif()
+set(Python_FIND_IMPLEMENTATIONS CPython PyPy)
+
+if (PYTHON_EXECUTABLE)
+  # Ensure the provided Python interpreter is used
+  set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+endif()
+# With modern CMake, this find_package forces pybind11 to use FindPython instead of its custom tools
+find_package(Python3 COMPONENTS Interpreter Development.Module)
+
+if (NOT DEFINED PYTHON_EXECUTABLE)
+  set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+endif()
+
 include(checkgit.cmake)
 checkGitSetup("MODULE")
 message(STATUS "Build module v${MODULE_VERSION} with type ${CMAKE_BUILD_TYPE}")
@@ -35,23 +61,11 @@ endif()
 # Special option for profiling runs
 option(PROJECT_PROFILING "Emit profiling output to standard out" OFF)
 
-
-if (PYTHON_EXECUTABLE)
-  # Ensure the provided Python interpreter is used
-  set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
-endif()
-# With modern CMake, this find_package forces pybind11 to use FindPython instead of its custom tools
-find_package(Python3 COMPONENTS Interpreter Development)
-
-if (NOT DEFINED PYTHON_EXECUTABLE)
-  set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-endif()
-
 # Use conan to fetch/configure/build pybind11, catch2 and hdf5
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
   file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
-          "${CMAKE_BINARY_DIR}/conan.cmake"
+          "${CMAKE_CURRENT_BINARY_DIR}/conan.cmake"
           EXPECTED_HASH SHA256=5cdb3042632da3efff558924eecefd580a0e786863a857ca097c3d1d43df5dcd
           TLS_VERIFY ON)
 endif()
@@ -162,6 +176,15 @@ else (DOXYGEN_FOUND)
   message(STATUS "Install Doxygen to build documentation")
 endif (DOXYGEN_FOUND)
 endif()
+
+#if (SKBUILD)
+#  message(STATUS "PYTHON_NumPy_INCLUDE_DIRS ${PYTHON_NumPy_INCLUDE_DIRS}")
+#  message(STATUS "Python3_NumPy_INCLUDE_DIRS ${Python3_NumPy_INCLUDE_DIRS}")
+#  message(STATUS "Python_EXECUTABLE ${Python_EXECUTABLE}")
+#  message(STATUS "Python_INCLUDE_DIR ${Python_INCLUDE_DIR}")
+#  message(STATUS "Python_LIBRARY ${Python_LIBRARY}")
+#  message(STATUS "Python_NumPy_INCLUDE_DIRS ${Python_NumPy_INCLUDE_DIRS}")
+#endif()
 
 
 install(TARGETS ${PROJECT_PYTHON_MODULE} LIBRARY DESTINATION ${PROJECT_PYTHON_DESTINATION})
