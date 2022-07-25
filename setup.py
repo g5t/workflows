@@ -6,13 +6,13 @@ with open("README.md", "r") as fh:
 
 KEYWORDARGS = dict(
     packages=['module'],
-    include_package_data=True,
     name='g5t-module',
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
     description='Test Module.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
+    include_package_data=True,
     url="https://github.com/g5t/workflow",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
