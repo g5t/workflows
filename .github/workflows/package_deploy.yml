@@ -72,7 +72,6 @@ jobs:
       run: |
         mkdir dist
         find ${{ steps.download.outputs.download-path }} -type f -regex ".*\.\(tar\.gz\|whl\)" -exec mv {} dist/. \;
-
     - name: Attach artifacts to GitHub tagged draft release
       uses: ncipollo/release-action@v1
       with:
