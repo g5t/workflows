@@ -1,8 +1,9 @@
 name: Package and Deploy
 
 on:
+  pull_request:
   release:
-    types: [published]
+    types: [created, edited, published]
   workflow_dispatch:
 
 defaults:
@@ -50,6 +51,23 @@ jobs:
         name: dist
         path: wheelhouse/*.whl
 
+  draft:
+    name: Deploy packages
+    needs: [source, wheel]
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'release' && (github.event.action == 'created' || github.event.action == 'edited')
+
+    steps:
+    - uses: actions/download-artifacts@v2
+    - name: Attach artifacts to GitHub tagged draft release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        draft: true
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "dist/*.whl,dist/*.tar.gz"
+
   upload:
     name: Deploy packages
     needs: [source, wheel]
@@ -57,17 +75,16 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
-    - uses: actions/download-artifacts@v2
-    - name: Attach artifacts to GitHub tagged release
-      uses: ncipollo/release-action@v1
-      with:
-        draft: true
-        prerelease: true
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: "dist/*.whl,dist/*.tar.gz"
-    - name: Publish artifacts to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1.5.0
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+      - uses: actions/download-artifacts@v2
+      - name: Attach artifacts to GitHub tagged release
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "dist/*.whl,dist/*.tar.gz"
+      - name: Publish artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1.5.0
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
