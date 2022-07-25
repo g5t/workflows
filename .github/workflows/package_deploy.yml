@@ -45,7 +45,7 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.8.0
       env:
-        CIBW_BUILD: "${{ matrix.python }}-${{ matrix.variant.platform }}-*"
+        CIBW_BUILD: ${{ matrix.python }}-${{ matrix.variant.platform }}-*
         MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Verify clean directory
