@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 KEYWORDARGS = dict(
     packages=['module'],
-    include_package_data=False,
+    include_package_data=True,
     name='g5t-module',
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
