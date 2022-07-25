@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/download-artifacts@v2
       - name: Attach artifacts to GitHub tagged release
-      - uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
