@@ -34,7 +34,7 @@ jobs:
       - name: Setup micromamba environment
         uses: mamba-org/provision-with-micromamba@main
         with:
-          micormamba-version: 0.23.0
+          micromamba-version: 0.23.0
           environment-file: .github/config/${{ matrix.variant.cmake-preset }}.yml
           cache-env: true
           extra-specs: python=${{ matrix.python-version }}
