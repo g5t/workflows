@@ -4,7 +4,6 @@ requires = [
     "wheel",
     "cmake>=3.12",
     "setuptools_scm[toml]>=6.2",
-    "numpy",
     "scikit-build",
     "ninja; platform_system!='Windows'",
     "conan"
@@ -23,7 +22,7 @@ testpaths = ["tests"]
 
 [tool.cibuildwheel]
 archs = ["auto64"]
-test-command = "python -m unittest discover -s {project}/wrap/tests"
+test-command = "python -m unittest discover -s {package}/wrap/tests"
 #skip = ["pp*"]
 build-verbosity = 1
 before-test = "pip install numpy"
@@ -37,9 +36,9 @@ repair-wheel-command = "delvewheel repair -w {dest_dir} -v {wheel}"
 
 # For now testing on musl libc requires *building* numpy, which is ridiculous
 [[tool.cibuildwheel.overrides]]
-select = "*musllinux*"
-before-test = ""
-test-command = ""
+select = "*musl*"
+before-test = "pip install --upgrade pip"
+test-command = "echo 'No tests under musl libc until a NumPy wheel is available'"
 
 [tool.setuptools_scm]
 
