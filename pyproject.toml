@@ -25,6 +25,9 @@ testpaths = ["tests"]
 archs = ["auto64"]
 test-command = "python -m unittest discover -s {project}/wrap/tests"
 test-extras = ["test"]
+skip = ["pp*"]
+build-verbosity = 1
+before-test = "pip install numpy"
 
 [tools.cibuildwheel.macos]
 archs = ["x86_64"]
@@ -32,6 +35,7 @@ archs = ["x86_64"]
 [tools.cibuildwheel.windows]
 before-build = "pip install delvewheel"
 repair-wheel-command = "delvewheel repair -w {dest_dir} -v {wheel}"
+test-command = "python -m unittest discover -s {project}\wrap\tests"
 
 [tool.setuptools_scm]
 
