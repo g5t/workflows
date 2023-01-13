@@ -20,7 +20,7 @@ jobs:
         fetch-depth: 0
     - run: pipx run build --sdist
     - run: pipx run twine check dist/*
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: dist
         path: dist/*.tar.gz
@@ -52,7 +52,7 @@ jobs:
       run: git diff --exit-code
       shell: bash
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: "${{ matrix.python }}-${{ matrix.variant.platform }}"
         path: wheelhouse/*.whl
