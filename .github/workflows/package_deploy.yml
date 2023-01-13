@@ -43,7 +43,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v2.8.0
+    - uses: pypa/cibuildwheel@v2.11.4
       env:
         CIBW_BUILD: ${{ matrix.python }}-${{ matrix.variant.platform }}*
         MACOSX_DEPLOYMENT_TARGET: "10.15"
