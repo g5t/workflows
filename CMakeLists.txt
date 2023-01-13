@@ -22,11 +22,13 @@ else()
 endif()
 
 # Attempt to find full development Python3
-find_package(Python3 COMPONENTS Interpreter Development QUIET)
+#find_package(Python3 COMPONENTS Interpreter Development QUIET)
+find_package(Python3 COMPONENTS Interpreter Development)
 if (NOT DEFINED Python3_Development_FOUND OR NOT ${Python3_Development_FOUND})
   # Fall-back to Development.Module which is present for SciKit-Build under manylinux, but not Windows?
   find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 endif()
+
 
 if (NOT DEFINED PYTHON_EXECUTABLE)
   set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
@@ -76,7 +78,6 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 conan_cmake_configure(
         REQUIRES
-        pybind11/2.6.2
         catch2/2.13.9
         GENERATORS
         cmake_find_package
@@ -92,7 +93,14 @@ conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_CURRENT_BINARY_DIR}
         OUTPUT_QUIET)
 
 find_package(Catch2 REQUIRED)
-find_package(pybind11 REQUIRED)
+
+# Use our own solution to fetch pybind11 since the Conan supplied version causes errors on macOS!
+include(fetcher.cmake)
+option(REQUIRE_SYSTEM_PYBIND11 "Never attempt to fetch pybind11" OFF)
+mark_as_advanced(REQUIRE_SYSTEM_PYBIND11)
+set(MINIMUM_PYBIND11_VERSION 2.8.1)
+set(FETCH_PYBIND11_REPO https://github.com/pybind/pybind11)
+git_fetch(pybind11 ${MINIMUM_PYBIND11_VERSION} ${FETCH_PYBIND11_REPO} ${REQUIRE_SYSTEM_PYBIND11})
 
 
 if (${PROJECT_LOGLEVEL} STREQUAL "VERBOSE")
