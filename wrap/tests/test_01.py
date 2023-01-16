@@ -15,11 +15,11 @@ sys.path[:0] = [str(path.absolute()) for path in addpaths]
 
 if find_spec('_module') is not None:
     import _module as s
-elif find_spec('module') is not None and find_spec('module._module') is not None:
-    import module as s
+elif find_spec('g5t_module') is not None and find_spec('g5t_module._module') is not None:
+    import g5t_module as s
 else:
     abspaths = [str(path.absolute()) for path in addpaths]
-    raise Exception("module not found in {}!".format(abspaths))
+    raise Exception("g5t_module not found in {}!".format(abspaths))
 
 class ModuleTester (unittest.TestCase):
   def test_01(self):

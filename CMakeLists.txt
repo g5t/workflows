@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18.2)
 cmake_policy(SET CMP0076 NEW) # Ensure target_sources converts relative paths
 
-project(module)
+project(g5t_module)
 set(PROJECT_PYTHON_MODULE _module)
 set(TESTING_TARGET tester)
 set(CMAKE_CXX_STANDARD 17)
@@ -23,7 +23,7 @@ set(PROJECT_LOGLEVEL "INFO" CACHE STRING "Emit log messages to standard out (DEB
 option(PROJECT_PROFILING "Emit profiling output to standard out" OFF)
 
 # Define the minimum version of libraries needed
-set(MINIMUM_PYBIND11_VERSION 2.8.1)
+set(MINIMUM_PYBIND11_VERSION 2.10.3)
 set(FETCH_PYBIND11_REPO https://github.com/pybind/pybind11)
 set(MINIMUM_CATCH2_VERSION 2.13.9)
 set(FETCH_CATCH2_REPO https://github.com/catchorg/Catch2)
@@ -82,20 +82,20 @@ endif()
 # Attempt to find pybind11 to handle CPython bindings
 git_fetch(pybind11 ${MINIMUM_PYBIND11_VERSION} ${FETCH_PYBIND11_REPO} ${REQUIRE_SYSTEM_PYBIND11})
 
-# Read the version of module
+# Read the version of g5t_module
 include(checkgit.cmake)
 checkGitSetup() # defines/creates version.hpp; and library 'git_version'
 # So that we can print it to the console along with the specified build type
 message(STATUS "Build module v${GIT_VERSION} with type ${CMAKE_BUILD_TYPE}")
 
-# We will always build the python module
+# We will always build the python g5t_module
 list(APPEND CXX_TARGETS ${PROJECT_PYTHON_MODULE})
 
 if(PROJECT_BUILD_PYTHON_TESTING OR PROJECT_BUILD_CXX_TESTING)
   enable_testing() # allows registration of Python tests in wrap/
 endif()
 
-# Target for python module
+# Target for python g5t_module
 pybind11_add_module(${PROJECT_PYTHON_MODULE} MODULE)
 add_subdirectory(wrap)
 

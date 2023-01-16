@@ -3,7 +3,7 @@ requires = [
     "setuptools>=45",
     "wheel",
     "cmake>=3.12",
-		"setuptools_scm>=6.2",
+	"setuptools_scm>=6.2",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -18,8 +18,8 @@ filterwarnings = ["error"]
 testpaths = ["tests"]
 
 [tool.cibuildwheel]
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
+test-requires = "pytest"
+test-command = "cd {project}/tests && pytest"
 test-skip = ["*universal2:arm64"]
 
 [tool.setuptools_scm]

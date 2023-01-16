@@ -1,31 +1,33 @@
 import os
 import re
 import sys
-import subprocess
 import pkgutil
 from sysconfig import get_platform
-from subprocess import CalledProcessError, check_output, check_call
-from distutils.version import LooseVersion
+from subprocess import check_output, check_call
+from pathlib import Path
+
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
+
+if pkgutil.find_loader('packaging') is None:
+    from distutils.version import LooseVersion as Version
+else:
+    from packaging.version import Version
 
 # We can use cmake provided from pip which (normally) gets installed at /bin
 # Except that in the manylinux builds it's placed at /opt/python/[version]/bin/
 # (as a symlink at least) which is *not* on the path.
-# If cmake is a known module, import it and use it tell us its binary directory
+# If cmake is a known module, import it and use it to tell us its binary directory
 if pkgutil.find_loader('cmake') is not None:
     import cmake
+
     CMAKE_BIN = cmake.CMAKE_BIN_DIR + os.path.sep + 'cmake'
 else:
     CMAKE_BIN = 'cmake'
 
+
 def get_cmake():
     return CMAKE_BIN
-
-# We want users to be able to specify the use of HDF5 for object IO.
-# But this should not be turned on by default (yet).
-# Enable HDF5 IO by passing `--use-hdf` when calling python setup.py.
-USE_HDF5=False
 
 
 def is_vsc():
@@ -43,6 +45,11 @@ class CMakeExtension(Extension):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
 
+PACKAGE_ROOT = Path(__file__).absolute().parent
+
+if PACKAGE_ROOT != Path(os.getcwd()):
+    raise RuntimeError(f"{PACKAGE_ROOT} != {os.getcwd()}")
+
 
 class CMakeBuild(build_ext):
     def run(self):
@@ -54,9 +61,9 @@ class CMakeBuild(build_ext):
                                ", ".join(e.name for e in self.extensions))
 
         rex = r'version\s*([\d.]+)'
-        cmake_version = LooseVersion(re.search(rex, out.decode()).group(1))
-        if cmake_version < '3.13.0':
-            raise RuntimeError("CMake >= 3.13.0 is required")
+        cmake_version = Version(re.search(rex, out.decode()).group(1))
+        if cmake_version < Version('3.18.2'):
+            raise RuntimeError("CMake >= 3.18.2 is required")
 
         for ext in self.extensions:
             self.build_extension(ext)
@@ -66,16 +73,16 @@ class CMakeBuild(build_ext):
         extdir = os.path.abspath(extdir)
         cmake_args = []
         if is_vsc():
-            if sys.maxsize > 2**32:
+            if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
             else:
                 cmake_args += ['-A', 'Win32']
 
         if is_mingw():
-            cmake_args += ['-G','Unix Makefiles'] # Must be two entries to work
+            cmake_args += ['-G', 'Unix Makefiles']  # Must be two entries to work
 
         cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                       '-DPython3_EXECUTABLE=' + sys.executable]
+                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = 'Debug' if self.debug else 'Release'
         # cfg = 'Debug' if self.debug else 'RelWithDebInfo'
@@ -94,33 +101,25 @@ class CMakeBuild(build_ext):
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j']
 
-        env = os.environ.copy()
-        cxxflags = '{} -DVERSION_INFO=\\"{}\\"'.format(
-            env.get('CXXFLAGS', ''), self.distribution.get_version())
-        env['CXXFLAGS'] = cxxflags
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-        check_call(
-            [get_cmake(), ext.sourcedir] + cmake_args,
-            cwd=self.build_temp, env=env)
-        check_call(
-            [get_cmake(), '--build', '.'] + build_args,
-            cwd=self.build_temp)
+        check_call([get_cmake(), str(PACKAGE_ROOT)] + cmake_args, cwd=self.build_temp)
+        check_call([get_cmake(), '--build', '.', '--target', "_module"] + build_args, cwd=self.build_temp)
 
-with open("README.md", "r") as fh:
+
+with open(PACKAGE_ROOT.joinpath('README.md'), 'r') as fh:
     LONG_DESCRIPTION = fh.read()
 
-KEYWORDARGS = dict(
-    name='g5t-module',
-    cmdclass=dict(build_ext=CMakeBuild),
+setup(
+    name='g5t_module',
     author='Greg Tucker',
     author_email='gregory.tucker@ess.eu',
-    description='Test Module.',
+    description='Build testing module.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
-    ext_modules=[CMakeExtension('module._module')],
-    options={'build': {'build_temp': 'cmake-build'}},
-    packages=find_packages(),
+    ext_modules=[CMakeExtension('g5t_module._module')],
+    packages=find_packages(str(PACKAGE_ROOT)),
+    cmdclass=dict(build_ext=CMakeBuild),
     url="https://github.com/g5t/workflow",
     zip_safe=False,
     classifiers=[
@@ -134,8 +133,3 @@ KEYWORDARGS = dict(
         "Topic :: Scientific/Engineering :: Physics",
     ]
 )
-
-try:
-    setup(**KEYWORDARGS)
-except CalledProcessError:
-    print("Failed to build the extension!")
