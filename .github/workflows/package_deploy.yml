@@ -26,7 +26,7 @@ jobs:
         path: dist/*.tar.gz
 
   cibuildwheel:
-    name: Build ${{ matrix.python.tag }} ${{ matrix.variant.platform }} wheel on ${{ matrix.variant.os }}
+    name: Build ${{ matrix.python-tag }} ${{ matrix.variant.platform }} wheel on ${{ matrix.variant.os }}
     runs-on: ${{ matrix.variant.os }}
     strategy:
       fail-fast: false
@@ -35,12 +35,7 @@ jobs:
           - {os: ubuntu-20.04, platform: 'manylinux'}
           - {os: ubuntu-20.04, platform: 'musllinux'}
           - {os: macos-11, platform: 'macosx'}
-        python:
-          - {version: '3.6', tag: 'cp36'}
-          - {version: '3.7', tag: 'cp37'}
-          - {version: '3.8', tag: 'cp38'}
-          - {version: '3.9', tag: 'cp39'}
-          - {version: '3.10', tag: 'cp310'}
+        python-tag: ['cp36', 'cp37', 'cp38', 'cp39', 'cp310']
 
     steps:
     - uses: actions/checkout@v3
@@ -49,7 +44,7 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.11.4
       env:
-        CIBW_BUILD: ${{ matrix.python.tag }}-${{ matrix.variant.platform }}*
+        CIBW_BUILD: ${{ matrix.python-tag }}-${{ matrix.variant.platform }}*
         MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     - name: Verify clean directory
@@ -58,7 +53,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: "${{ matrix.python.tag }}-${{ matrix.variant.platform }}"
+        name: "${{ matrix.python-tag }}-${{ matrix.variant.platform }}"
         path: wheelhouse/*.whl
 
   buildwheel:
