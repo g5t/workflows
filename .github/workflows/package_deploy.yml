@@ -58,7 +58,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: "${{ matrix.python }}-${{ matrix.variant.platform }}"
+        name: "${{ matrix.python.tag }}-${{ matrix.variant.platform }}"
         path: wheelhouse/*.whl
 
   buildwheel:
@@ -70,7 +70,7 @@ jobs:
           - {os: windows-2019, name: "windows", config: "gha-test-windows"}
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
-      - uses: brille/python-hdf5-buildwheel-action@v2
+      - uses: brille/python-hdf5-buildwheel-action@v2.2
         with:
           os: ${{ matrix.variant.os }}
           python-version: ${{ matrix.python-version }}
