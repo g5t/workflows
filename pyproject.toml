@@ -19,8 +19,7 @@ testpaths = ["tests"]
 
 [tool.cibuildwheel]
 test-requires = "pytest"
-test-command = "pytest {project}/tests"
-test-extras = ["test"]
+test-command = "cd {project}/tests && pytest"
 test-skip = ["*universal2:arm64"]
 
 [tool.setuptools_scm]
