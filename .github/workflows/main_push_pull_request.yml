@@ -37,14 +37,14 @@ jobs:
           cache-env: true
           extra-specs: python=${{ matrix.python-version }}
       - name: CCache
-        uses: hendrikmuhs/ccache-action@v1.2.2
+        uses: hendrikmuhs/ccache-action@v1.2.8
         with:
           key: ${{ matrix.variant.os }}
       - run: echo "pythonInterpreter=`which python`" >> $GITHUB_ENV
       - name: configure
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.cmake-type }} -D PYTHON3_EXECUTABLE=${{ env.pythonInterpreter }}
       - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
+        uses: SimenB/github-actions-cpu-cores@v1.1.0
         id: cpu-cores
       - name: build
         run: cmake --build build --config ${{ matrix.cmake-type }} --parallel ${{ steps.cpu-cores.outputs.count }}
