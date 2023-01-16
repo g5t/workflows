@@ -98,7 +98,7 @@ find_package(Catch2 REQUIRED)
 include(fetcher.cmake)
 option(REQUIRE_SYSTEM_PYBIND11 "Never attempt to fetch pybind11" OFF)
 mark_as_advanced(REQUIRE_SYSTEM_PYBIND11)
-set(MINIMUM_PYBIND11_VERSION 2.8.1)
+set(MINIMUM_PYBIND11_VERSION 2.10.3)
 set(FETCH_PYBIND11_REPO https://github.com/pybind/pybind11)
 git_fetch(pybind11 ${MINIMUM_PYBIND11_VERSION} ${FETCH_PYBIND11_REPO} ${REQUIRE_SYSTEM_PYBIND11})
 
