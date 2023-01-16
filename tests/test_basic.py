@@ -1,11 +1,11 @@
-import module as m
+import g5t_module as m
 
 def test_main():
     assert m.add(1, 2) == 3
     assert m.subtract(1, 2) == -1
 
 def test_module():
-    import module._module as cm
+    import g5t_module._module as cm
     assert hasattr(cm, '__version__')
     assert hasattr(cm, '__build_datetime')
     assert hasattr(cm, '__build_hostname')
