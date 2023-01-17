@@ -26,7 +26,7 @@ jobs:
         path: dist/*.tar.gz
 
   cibuildwheel:
-    name: Build ${{ matrix.python-tag }} ${{ matrix.variant.platform }} wheel on ${{ matrix.variant.os }}
+    name: ${{ matrix.python-tag }} ${{ matrix.variant.platform }} on ${{ matrix.variant.os }}
     runs-on: ${{ matrix.variant.os }}
     strategy:
       fail-fast: false
@@ -34,7 +34,7 @@ jobs:
         variant:
           - {os: ubuntu-22.04, platform: 'manylinux'}
           - {os: ubuntu-22.04, platform: 'musllinux'}
-          - {os: macos-11, platform: 'macosx'}
+          - {os: macos-12, platform: 'macosx'}
         python-tag: ['cp36', 'cp37', 'cp38', 'cp39', 'cp310']
 
     steps:
@@ -57,12 +57,13 @@ jobs:
         path: wheelhouse/*.whl
 
   buildwheel:
+    name: ${{ matrix.python-version }} ${{ matrix.variant.name }} on ${{ matrix.variant.os }}
     runs-on: ${{ matrix.variant.os }}
     strategy:
       fail-fast: false
       matrix:
         variant:
-          - {os: windows-2019, name: "windows", config: "gha-test-windows"}
+          - {os: windows-2022, name: "windows", config: "gha-test-windows"}
         python-version: [ '3.6', '3.7', '3.8', '3.9', '3.10' ]
     steps:
       - uses: brille/python-hdf5-buildwheel-action@v2.2
