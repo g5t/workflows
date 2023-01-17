@@ -13,7 +13,7 @@ defaults:
 jobs:
   source:
     name: Build Source distribution
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -32,8 +32,8 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          - {os: ubuntu-20.04, platform: 'manylinux'}
-          - {os: ubuntu-20.04, platform: 'musllinux'}
+          - {os: ubuntu-22.04, platform: 'manylinux'}
+          - {os: ubuntu-22.04, platform: 'musllinux'}
           - {os: macos-11, platform: 'macosx'}
         python-tag: ['cp36', 'cp37', 'cp38', 'cp39', 'cp310']
 
@@ -76,7 +76,7 @@ jobs:
   draft:
     name: Deploy packages
     needs: [source, cibuildwheel, buildwheel]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'release'
 
     steps:
