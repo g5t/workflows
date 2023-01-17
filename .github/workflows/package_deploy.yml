@@ -34,7 +34,7 @@ jobs:
         variant:
           - {os: ubuntu-22.04, platform: 'manylinux'}
           - {os: ubuntu-22.04, platform: 'musllinux'}
-          - {os: macos-11, platform: 'macosx'}
+          - {os: macos-12, platform: 'macosx'}
         python-tag: ['cp36', 'cp37', 'cp38', 'cp39', 'cp310']
 
     steps:
